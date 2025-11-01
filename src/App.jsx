@@ -58,17 +58,18 @@ const GEMINI_MODEL = "gemini-2.5-flash-preview-09-2025";
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
 
-// --- Firebase Initialization (using provided globals) ---
-// This block will be REPLACED when you follow the setup steps
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+// --- Firebase Initialization (using environment variables) ---
 let firebaseConfig;
 try {
-  // This line is a placeholder for the Canvas environment
-  firebaseConfig = JSON.parse(__firebase_config);
+  // This securely loads the config from your GitHub settings
+  firebaseConfig = JSON.parse(import.meta.env.VITE_APP_FIREBASE_CONFIG);
 } catch (e) {
-  console.error("Failed to parse Firebase config:", e);
+  console.error("Failed to parse Firebase config. Make sure it's set in your GitHub repository variables.", e);
   firebaseConfig = {}; // Fallback
 }
+
+// This is now safe, as 'appId' is part of your config, but we get it for the db path
+const appId = firebaseConfig.appId || 'default-app-id'; 
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
