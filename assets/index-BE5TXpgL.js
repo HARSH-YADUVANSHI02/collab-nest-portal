@@ -3370,7 +3370,7 @@ This typically indicates that your device does not have a healthy Internet conne
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const oN=[["path",{d:"M18 6 6 18",key:"1bl5f8"}],["path",{d:"m6 6 12 12",key:"d8bk6v"}]],Yh=_t("x",oN),hm="@iilm.edu";let Bm;try{Bm=""}catch(s){console.error("Failed to read Gemini API key",s),Bm=""}const lN="gemini-2.5-flash-preview-09-2025",uN=`https://generativelanguage.googleapis.com/v1beta/models/${lN}:generateContent?key=${Bm}`;let Th;try{Th=JSON.parse(`{
+ */const oN=[["path",{d:"M18 6 6 18",key:"1bl5f8"}],["path",{d:"m6 6 12 12",key:"d8bk6v"}]],Yh=_t("x",oN),hm="@iilm.edu";let Bm;try{Bm="AIzaSyD-rPw2C-1GZ4tyDdFZPYoFeFOdw_QYz_k"}catch(s){console.error("Failed to read Gemini API key",s),Bm=""}const lN="gemini-2.5-flash-preview-09-2025",uN=`https://generativelanguage.googleapis.com/v1beta/models/${lN}:generateContent?key=${Bm}`;let Th;try{Th=JSON.parse(`{
   "apiKey": "AIzaSyAWq-EYNJi0hOQ9x6eKYIYRaUF9nysam2w",
   "authDomain": "collabnest2-d5f3b.firebaseapp.com",
   "projectId": "collabnest2-d5f3b",
