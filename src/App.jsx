@@ -53,9 +53,16 @@ import {
 const UNIVERSITY_DOMAIN = '@iilm.edu';
 
 // --- Gemini API Configuration ---
-const GEMINI_API_KEY = ""; // Leave as ""
+let geminiApiKey;
+try {
+  geminiApiKey = import.meta.env.VITE_APP_GEMINI_API_KEY || "";
+} catch (e) {
+  console.error("Failed to read Gemini API key", e);
+  geminiApiKey = "";
+}
+
 const GEMINI_MODEL = "gemini-2.5-flash-preview-09-2025";
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiApiKey}`;
 
 
 // --- Firebase Initialization (using environment variables) ---
