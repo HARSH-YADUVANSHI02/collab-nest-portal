@@ -61,10 +61,11 @@ const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/
 // --- Firebase Initialization (using environment variables) ---
 let firebaseConfig;
 try {
-  // This securely loads the config from your GitHub settings
+  // This securely loads the config from your .env.local file (for local dev)
+  // or from your Netlify/GitHub environment variables (for production)
   firebaseConfig = JSON.parse(import.meta.env.VITE_APP_FIREBASE_CONFIG);
 } catch (e) {
-  console.error("Failed to parse Firebase config. Make sure it's set in your GitHub repository variables.", e);
+  console.error("Failed to parse Firebase config. Make sure it's set in your .env.local file or Netlify/GitHub variables.", e);
   firebaseConfig = {}; // Fallback
 }
 
@@ -81,7 +82,6 @@ try {
 } catch (e) {
   console.error("Failed to set Firestore log level:", e);
 }
-
 // --- Gemini API Helper Function ---
 
 /**
@@ -2324,7 +2324,6 @@ export default function App() {
       setIsAuthReady(true);
     });
 
-    authAndSignIn();
 
     return () => unsubscribe();
   }, []);
