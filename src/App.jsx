@@ -7,7 +7,8 @@ import {
   signInWithEmailAndPassword,
   signOut,
   signInWithCustomToken,
-  signInAnonymously
+  signInAnonymously,
+  sendEmailVerification
 } from 'firebase/auth';
 import {
   getFirestore,
@@ -17,6 +18,7 @@ import {
   addDoc,
   getDocs,
   updateDoc,
+  deleteDoc,
   collection,
   query,
   onSnapshot,
@@ -46,11 +48,33 @@ import {
   Briefcase, // For Projects
   Inbox, // For Inbox
   BrainCircuit, // For AI Matcher
-  MessageCircle // For Send Message
+ MessageCircle, // For Send Message
+  Trash2 // 
 } from 'lucide-react';
 
 // --- Configuration ---
 const UNIVERSITY_DOMAIN = '@iilm.edu';
+const COURSE_OPTIONS = [
+  'BBA',
+  'MBA',
+  'B.Tech (CSE)',
+  'B.Tech (AI/ML)',
+  'B.Design',
+  'BA LLB',
+  'BBA LLB',
+  'BA (Psychology)',
+  'Other'
+];
+const SEMESTER_OPTIONS = [
+  '1st',
+  '2nd',
+  '3rd',
+  '4th',
+  '5th',
+  '6th',
+  '7th',
+  '8th',
+];
 
 // --- Gemini API Configuration ---
 let geminiApiKey;
@@ -202,10 +226,23 @@ const LoginPage = ({ setPage, showModal }) => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      // Auth state change will handle redirecting to dashboard
-    } catch (error) {
+   try {
+  // --- REPLACE THIS WHOLE BLOCK ---
+  const userCredential = await signInWithEmailAndPassword(auth, email, password);
+
+  if (!userCredential.user.emailVerified) {
+    // User's email is not verified
+    await signOut(auth); // Log them back out
+    showModal(
+      "Email Not Verified",
+      "Please check your inbox and click the verification link we sent you. If you don't see it, check your spam folder."
+    );
+    setIsLoading(false); // Stop loading
+    return; // Stop the function
+  }
+  // If verified, onAuthStateChanged will see the user and log them in
+  // --- END OF REPLACED BLOCK ---
+} catch (error) {
       console.error("Login Error:", error);
       showModal('Login Failed', error.message.replace('Firebase: ', ''));
     }
@@ -286,26 +323,34 @@ const LoginPage = ({ setPage, showModal }) => {
  */
 const SignUpPage = ({ setPage, showModal }) => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [role, setRole] = useState('student'); // 'student' or 'teacher'
-  const [isLoading, setIsLoading] = useState(false);
-
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [role, setRole] = useState('student'); // 'student' or 'teacher'
+  const [course, setCourse] = useState('');
+  const [semester, setSemester] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const handleSignUp = async (e) => {
     e.preventDefault();
 
-    if (!email.endsWith(UNIVERSITY_DOMAIN)) {
+    /*if (!email.endsWith(UNIVERSITY_DOMAIN)) {
       showModal(
         'Invalid Email',
         `Sign-up is restricted to ${UNIVERSITY_DOMAIN} email addresses.`
       );
       return;
-    }
+    }*/
 
     if (password.length < 6) {
       showModal(
         'Weak Password',
         'Password should be at least 6 characters long.'
+      );
+      return;
+    }
+        if (role === 'student' && (!course || !semester)) {
+      showModal(
+        'Incomplete Form',
+        'Please select your course and semester.'
       );
       return;
     }
@@ -322,17 +367,28 @@ const SignUpPage = ({ setPage, showModal }) => {
 
       // 2. Create user profile in Firestore
       const userRef = doc(db, `artifacts/${appId}/public/data/users`, user.uid);
-      await setDoc(userRef, {
-        uid: user.uid,
-        email: user.email,
-        name: name,
-        role: role,
-        bio: '',
-        skills: [],
-        linkedin: '',
-        github: '',
-        createdAt: serverTimestamp(),
-      });
+     await setDoc(userRef, {
+        uid: user.uid,
+        email: user.email,
+        name: name,
+        role: role,
+        bio: '',
+        skills: [],
+        linkedin: '',
+        github: '',
+        course: role === 'student' ? course : '',
+        semester: role === 'student' ? semester : '',
+        createdAt: serverTimestamp(),
+});
+      await sendEmailVerification(user);
+      await signOut(auth); // Log the user out immediately
+      
+      showModal(
+        "Account Created!",
+        "We've sent a verification link to your email. Please click the link to activate your account, then log in."
+      );
+      setPage({ name: 'login' }); // Redirect to login page
+      
 
       // Auth state change will handle redirect
     } catch (error) {
@@ -383,7 +439,7 @@ const SignUpPage = ({ setPage, showModal }) => {
               htmlFor="email"
               className="block text-sm font-medium text-gray-700"
             >
-              University Email ({UNIVERSITY_DOMAIN})
+            Email Address
             </label>
             <input
               id="email"
@@ -431,6 +487,55 @@ const SignUpPage = ({ setPage, showModal }) => {
               <option value="teacher">Teacher</option>
             </select>
           </div>
+                    
+          
+          {/* --- ADD THIS BLOCK START --- */}
+          {role === 'student' && (
+            <>
+              <div>
+                <label
+                  htmlFor="course"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Course
+                </label>
+                <select
+                  id="course"
+                  name="course"
+                  value={course}
+                  onChange={(e) => setCourse(e.target.value)}
+                  required
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 transition duration-150"
+                >
+                  <option value="" disabled>Select your course</option>
+                  {COURSE_OPTIONS.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div>
+                <label
+                  htmlFor="semester"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Semester
+                </label>
+                <select
+                  id="semester"
+                  name="semester"
+                  value={semester}
+                  onChange={(e) => setSemester(e.target.value)}
+                  required
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 transition duration-150"
+                >
+                  <option value="" disabled>Select your semester</option>
+                  {SEMESTER_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+            </>
+          )}
+          {/* --- ADD THIS BLOCK END --- */}
+
+          
+
           <button
             type="submit"
             disabled={isLoading}
@@ -1024,7 +1129,21 @@ const DashboardPage = ({ userId, user, showModal }) => {
       showModal("Error", "Could not update like.");
     }
   };
-
+ const handleDeletePost = async (postId) => {
+    // We can't use a real 'confirm()' box. 
+    // This is a placeholder. For a real app, we'd build a custom modal.
+    // const confirmed = window.confirm("Are you sure you want to delete this post?");
+    // if (!confirmed) return;
+    
+    try {
+      const postRef = doc(db, `artifacts/${appId}/public/data/achievements`, postId);
+      await deleteDoc(postRef);
+      // The onSnapshot listener will automatically update the UI
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      showModal("Error", "Could not delete the post.");
+    }
+  };
 
   const timeAgo = (date) => {
     if (!date) return 'just now';
@@ -1090,7 +1209,17 @@ const DashboardPage = ({ userId, user, showModal }) => {
             const hasLiked = currentLikes.includes(userId);
 
             return (
-              <div key={post.id} className="bg-white p-5 rounded-xl shadow-lg">
+              <div key={post.id} className="bg-white p-5 rounded-xl shadow-lg relative">
+                {/* console.log removed */}
+                {post.authorId === userId && (
+                  <button
+                    onClick={() => handleDeletePost(post.id)}
+                    className="absolute top-3 right-3 text-gray-400 hover:text-red-500 transition-colors z-10"
+                    title="Delete post"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                )}
                 <div className="flex items-center mb-3">
                   <div className="flex-shrink-0 bg-emerald-100 rounded-full h-10 w-10 flex items-center justify-center">
                     <User size={20} className="text-emerald-600" />
@@ -1673,6 +1802,18 @@ const ProjectsPage = ({ userId, user, showModal, setPage }) => {
     if (interval > 1) return Math.floor(interval) + "m ago";
     return "just now";
   };
+  const handleDeleteProject = async (projectId) => {
+    // const confirmed = window.confirm("Are you sure you want to delete this project?");
+    // if (!confirmed) return;
+    
+    try {
+      const projectRef = doc(db, `artifacts/${appId}/public/data/projects`, projectId);
+      await deleteDoc(projectRef);
+    } catch (error) {
+      console.error("Error deleting project:", error);
+      showModal("Error", "Could not delete the project.");
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
@@ -1696,7 +1837,17 @@ const ProjectsPage = ({ userId, user, showModal, setPage }) => {
           <p className="text-center text-gray-500">No projects listed yet. Be the first to post!</p>
         )}
         {projects.map((project) => (
-          <div key={project.id} className="bg-white p-5 rounded-xl shadow-lg">
+          <div key={project.id} className="bg-white p-5 rounded-xl shadow-lg relative">
+            {/* console.log removed */}
+              {project.authorId === userId && (
+              <button
+                onClick={() => handleDeleteProject(project.id)}
+                className="absolute top-3 right-3 text-gray-400 hover:text-red-500 transition-colors z-10"
+                title="Delete project"
+              >
+                <Trash2 size={16} />
+              </button>
+            )}
             <div className="flex justify-between items-start">
               <div>
                 <h3 className="text-xl font-semibold text-gray-900">{project.title}</h3>
@@ -1916,6 +2067,8 @@ const ProfilePage = ({ currentUserId, currentUser, showModal, setPage, profileId
     skills: '',
     linkedin: '',
     github: '',
+    course: '',
+    semester: '',
   });
   const [bioKeywords, setBioKeywords] = useState('');
   const [isGeneratingBio, setIsGeneratingBio] = useState(false);
@@ -1957,13 +2110,16 @@ const ProfilePage = ({ currentUserId, currentUser, showModal, setPage, profileId
           const data = docSnap.data();
           setProfile(data);
           // Pre-fill form data
-          setFormData({
+               setFormData({
             name: data.name || '',
             bio: data.bio || '',
             skills: (data.skills || []).join(', '),
             linkedin: data.linkedin || '',
             github: data.github || '',
+            course: data.course || '',
+            semester: data.semester || '',
           });
+
         } else {
           showModal("Error", "Profile not found.");
           setProfile(null);
@@ -1992,13 +2148,16 @@ const ProfilePage = ({ currentUserId, currentUser, showModal, setPage, profileId
       .map(skill => skill.trim())
       .filter(skill => skill !== '');
 
-    const updatedData = {
+        const updatedData = {
       name: formData.name,
       bio: formData.bio,
       skills: skillsArray,
       linkedin: formData.linkedin,
       github: formData.github,
+      course: formData.course,
+      semester: formData.semester,
     };
+
 
     try {
       const userRef = doc(db, `artifacts/${appId}/public/data/users`, currentUserId);
@@ -2081,6 +2240,14 @@ const ProfilePage = ({ currentUserId, currentUser, showModal, setPage, profileId
                   )}
                   <p className="text-md text-gray-600 capitalize">{profile.role}</p>
                   <p className="text-sm text-gray-500">{profile.email}</p>
+                 
+                  {profile.role === 'student' && (profile.course || profile.semester) && (
+                    <p className="text-sm text-emerald-700 font-medium pt-1">
+                      {profile.course}
+                      {profile.course && profile.semester && ' - '}
+                      {profile.semester}{profile.semester ? ' Sem' : ''}
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="mt-4 sm:mt-0 flex-shrink-0">
@@ -2174,6 +2341,34 @@ const ProfilePage = ({ currentUserId, currentUser, showModal, setPage, profileId
                   </p>
                 )}
               </div>
+               {isEditing && profile.role === 'student' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Course</h4>
+                     <select
+                      name="course"
+                      value={formData.course}
+                      onChange={handleInputChange}
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+                    >
+                      <option value="" disabled>Select your course</option>
+                      {COURSE_OPTIONS.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Semester</h4>
+                     <select
+                      name="semester"
+                      value={formData.semester}
+                      onChange={handleInputChange}
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+                    >
+                      <option value="" disabled>Select your semester</option>
+                      {SEMESTER_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                </div>
+              )}
 
                {/* Skills */}
               <div>
@@ -2317,17 +2512,20 @@ export default function App() {
     };
     
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (currentUser && !currentUser.isAnonymous) {
+     if (currentUser && currentUser.emailVerified && !currentUser.isAnonymous) {
         setUser(currentUser);
         setUserId(currentUser.uid);
         if (page.name === 'login' || page.name === 'signup') {
           setPage({ name: 'dashboard' });
         }
-      } else {
-        setUser(null);
-        setUserId(null);
-        setPage({ name: 'login' });
-      }
+     } else {
+  setUser(null);
+  setUserId(null);
+  // Don't kick user off login/signup pages
+  if (page.name !== 'login' && page.name !== 'signup') {
+    setPage({ name: 'login' });
+  }
+}
       setIsAuthReady(true);
     });
 
