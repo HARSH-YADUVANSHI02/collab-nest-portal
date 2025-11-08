@@ -261,10 +261,7 @@ const LoginPage = ({ setPage, showModal }) => {
         </h2>
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
-            >
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
               Email Address
             </label>
             <input
@@ -275,14 +272,12 @@ const LoginPage = ({ setPage, showModal }) => {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 transition[...]
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
             />
           </div>
+
           <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
-            >
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
               Password
             </label>
             <input
@@ -293,13 +288,14 @@ const LoginPage = ({ setPage, showModal }) => {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 transition[...]
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
             />
           </div>
+
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none fo[...]
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
           >
             {isLoading ? <Loader2 className="animate-spin" /> : 'Sign In'}
           </button>
@@ -323,12 +319,12 @@ const LoginPage = ({ setPage, showModal }) => {
  */
 const SignUpPage = ({ setPage, showModal }) => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [role, setRole] = useState('student'); // 'student' or 'teacher'
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [role, setRole] = useState('student'); // 'student' or 'teacher'
   const [course, setCourse] = useState('');
   const [semester, setSemester] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   // Teacher fields
   const [designation, setDesignation] = useState('');
   const [department, setDepartment] = useState('');
@@ -377,14 +373,14 @@ const SignUpPage = ({ setPage, showModal }) => {
       // 2. Create user profile in Firestore
       const userRef = doc(db, `artifacts/${appId}/public/data/users`, user.uid);
      await setDoc(userRef, {
-        uid: user.uid,
-        email: user.email,
-        name: name,
-        role: role,
-        bio: '',
-        skills: [],
-        linkedin: '',
-        github: '',
+      uid: user.uid,
+      email: user.email,
+      name: name,
+      role: role,
+      bio: '',
+      skills: [],
+      linkedin: '',
+      github: '',
         course: role === 'student' ? course : '',
         semester: role === 'student' ? semester : '',
         // teacher-specific fields
@@ -396,7 +392,7 @@ const SignUpPage = ({ setPage, showModal }) => {
         subjects: role === 'teacher' ? subjects.split(',').map(s => s.trim()).filter(Boolean) : [],
         experienceYears: role === 'teacher' ? (experienceYears ? Number(experienceYears) : 0) : 0,
         education: role === 'teacher' ? education : '',
-        createdAt: serverTimestamp(),
+      createdAt: serverTimestamp(),
 });
       await sendEmailVerification(user);
       await signOut(auth); // Log the user out immediately
@@ -406,7 +402,7 @@ const SignUpPage = ({ setPage, showModal }) => {
         "We've sent a verification link to your email. Please click the link to activate your account, then log in."
       );
       setPage({ name: 'login' }); // Redirect to login page
-      
+      
       // Auth state change will handle redirect
     } catch (error) {
       console.error("Sign Up Error:", error);
@@ -448,7 +444,7 @@ const SignUpPage = ({ setPage, showModal }) => {
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 transition dura[...]
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
             />
           </div>
           <div>
@@ -466,7 +462,7 @@ const SignUpPage = ({ setPage, showModal }) => {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 transition dura[...]
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
             />
           </div>
           <div>
@@ -483,7 +479,7 @@ const SignUpPage = ({ setPage, showModal }) => {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 transition dura[...]
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
             />
           </div>
           <div>
@@ -597,8 +593,7 @@ const SignUpPage = ({ setPage, showModal }) => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:r[...]
-          >
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:r[...]" >          
             {isLoading ? <Loader2 className="animate-spin" /> : 'Sign Up'}
           </button>
         </form>
@@ -793,7 +788,7 @@ const DashboardPage = ({ userId, user, showModal }) => {
                     >
                       <ThumbsUp 
                         size={18} 
-                        className={`group-hover:text-emerald-600 ${hasLiked ? 'text-emerald-600 fill-emerald-600' : ''}`}
+                        className={`group-hover:text-emerald-600 ${hasLiked ? 'text-emerald-600 fill-emerald-600' : ''}`} 
                       />
                       <span className={`text-sm group-hover:text-emerald-6D0 ${hasLiked ? 'text-emerald-600' : ''}`}>  
                         {currentLikes.length} {currentLikes.length === 1 ? 'Like' : 'Likes'}
@@ -869,4 +864,3 @@ export default function App() {
     
     return () => unsubscribe();
   }, []);
-}
